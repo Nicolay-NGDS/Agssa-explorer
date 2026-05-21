@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Circular swoosh - top right -->
+  <path d="M 85 50 A 35 35 0 1 0 50 15" fill="none" stroke="#4A90D9" stroke-width="8" stroke-linecap="round"/>
+  <!-- Circular swoosh - bottom left -->
+  <path d="M 15 50 A 35 35 0 1 0 50 85" fill="none" stroke="#4A90D9" stroke-width="8" stroke-linecap="round"/>
+  <!-- AS text -->
+  <text x="50" y="60" font-family="Arial, sans-serif" font-size="32" font-weight="bold" text-anchor="middle" fill="#4A90D9">AS</text>
+</svg>

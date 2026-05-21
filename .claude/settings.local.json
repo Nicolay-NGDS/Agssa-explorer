@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir \"C:\\\\Work\\\\Prosear\\\\Agssa\\\\agssa-explorer\" /s /b)",
+      "Bash(dir:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node -e:*)",
+      "Bash(grep:*)",
+      "WebFetch(domain:www.arriendeseguro.com)",
+      "WebFetch(domain:arriendetranquiloenlinea.com.co)",
+      "Bash(7z l:*)",
+      "Bash(where:*)",
+      "Bash(where \"C:\\\\Program Files\\\\7-Zip\\\\7z.exe\")",
+      "Bash(powershell -Command:*)",
+      "Bash(cmd /c \"dir \"\"C:\\\\Work\\\\Prosear\\\\Agssa\\\\agssa-explorer\\\\BD\"\" /a\")",
+      "Bash(timeout 5 cat:*)",
+      "Bash(\"C:/Work/Automatizacion firma docusign/automation/node_modules/electron-winstaller/vendor/7z.exe\" l \"C:/Work/Prosear/Agssa/agssa-explorer/BD/BackUpProdAgssa_07_05_2026_184001.7z\")",
+      "Bash(mkdir:*)",
+      "Bash(xxd:*)",
+      "Bash(dd:*)",
+      "Bash(powershell:*)",
+      "Bash(git init:*)",
+      "Bash(git reset:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

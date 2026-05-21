@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npm install *)",
+      "Edit(src/**/*)",
+      "Write(src/**/*)",
+      "Read(**/*)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Edit(.env*)"
+    ]
+  }
+}

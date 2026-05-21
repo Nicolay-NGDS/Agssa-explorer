@@ -1,0 +1,656 @@
+{
+  "meta": {
+    "name": "AGSSA - Arrendamiento Garantizado Seguros SURA",
+    "description": "Sistema integral de gestion de arriendos con seguros de arrendamiento",
+    "version": "1.0.0",
+    "lastUpdated": "2024"
+  },
+
+  "systems": [
+    {
+      "id": "agssasura",
+      "name": "AGSSAsura",
+      "shortName": "AGSSA",
+      "description": "Sistema central de gestion para inmobiliarias. Backend principal que procesa solicitudes, contratos, analisis de riesgo, siniestros y renovaciones.",
+      "type": "system",
+      "technology": {
+        "framework": ".NET Framework 4.8",
+        "ui": "ASP.NET WebForms",
+        "orm": "ADO.NET + Stored Procedures",
+        "architecture": "N-Capas (DAL, Modelo.Entidades, Modelo.Negocio, DST.AGSSA)"
+      },
+      "repository": {
+        "branch": "develop",
+        "path": "AGSSAsura/"
+      },
+      "database": "agssa",
+      "modules": ["cotizaciones", "solicitudes", "analisis", "contratos", "caja", "siniestros", "renovaciones", "inmobiliarias", "admin"],
+      "integrations": ["zohosign", "aws-s3", "sura", "wcf-motor-decision"],
+      "criticalFiles": [
+        { "path": "DAL/DAO.cs", "size": "661KB", "description": "Data Access Layer completo" },
+        { "path": "Modelo.Negocio/MNegocio.cs", "size": "154KB", "description": "Logica de negocio centralizada" }
+      ],
+      "stats": {
+        "pages": 56,
+        "entities": 82,
+        "storedProcedures": 120
+      }
+    },
+    {
+      "id": "radicacion",
+      "name": "RadicacionEnLinea",
+      "shortName": "Radicacion",
+      "description": "Formulario web para que arrendatarios radiquen solicitudes con validacion de identidad biometrica y pagos en linea.",
+      "type": "system",
+      "technology": {
+        "framework": ".NET 8",
+        "ui": "ASP.NET Core MVC + Razor",
+        "orm": "Entity Framework Core 9",
+        "architecture": "MVC + Services"
+      },
+      "repository": {
+        "branch": "feature/24022026-forms",
+        "path": "RadicacionEnLinea/"
+      },
+      "database": "radicaciones",
+      "integrations": ["truvalidate", "wompi", "masivapp", "wcf-external-solution", "wcf-motor-decision"],
+      "criticalFiles": [
+        { "path": "Controllers/ValidacionIdentidadController.cs", "description": "Flujo completo de validacion biometrica" },
+        { "path": "Services/TruValidateServices.cs", "description": "Integracion con TruValidate" },
+        { "path": "Services/WompiServices.cs", "description": "Integracion con pasarela de pagos" }
+      ],
+      "stats": {
+        "controllers": 13,
+        "services": 29,
+        "entities": 11
+      }
+    },
+    {
+      "id": "portal-asesores",
+      "name": "Portal-Asesores",
+      "shortName": "Portal Asesores",
+      "description": "Dashboard y herramientas para asesores inmobiliarios. Permite cotizar, consultar solicitudes y dar seguimiento a renovaciones.",
+      "type": "system",
+      "technology": {
+        "framework": ".NET 8",
+        "ui": "ASP.NET Core API + Razor Pages",
+        "orm": "Entity Framework Core",
+        "architecture": "API REST + Frontend separado"
+      },
+      "repository": {
+        "branch": "feature/D-00009_V1",
+        "path": "Portal-asesores/"
+      },
+      "database": "agssa",
+      "integrations": [],
+      "authentication": {
+        "method": "OTP + JWT",
+        "otpExpiration": "5 minutos",
+        "jwtExpiration": "4 horas"
+      },
+      "criticalFiles": [
+        { "path": "Services/CotizacionService.cs", "description": "Calculo de cotizaciones con formulas" },
+        { "path": "Services/OTPService.cs", "description": "Generacion y validacion de OTP" },
+        { "path": "Services/JwtService.cs", "description": "Generacion de tokens JWT" }
+      ],
+      "stats": {
+        "apiEndpoints": 17,
+        "razorPages": 8,
+        "services": 6
+      }
+    },
+    {
+      "id": "landing",
+      "name": "LandingInmobiliarias",
+      "shortName": "Landing",
+      "description": "Portal web para inmobiliarias. Permite consultar solicitudes, descargar reportes y generar links de radicacion para clientes.",
+      "type": "system",
+      "technology": {
+        "framework": ".NET Framework 4.7.2",
+        "ui": "ASP.NET WebForms",
+        "orm": "ADO.NET (Singleton pattern)",
+        "architecture": "WebForms simple"
+      },
+      "repository": {
+        "branch": "feature/D14042026LinkRadicacion",
+        "path": "LandingInmobiliarias/"
+      },
+      "database": "agssa",
+      "integrations": ["api-agssa"],
+      "authentication": {
+        "method": "Forms Authentication",
+        "timeout": "30 minutos"
+      },
+      "criticalFiles": [
+        { "path": "Descargas.aspx.cs", "size": "115KB", "description": "Panel principal con parametro F" },
+        { "path": "Modelo/Singleton.cs", "description": "Data Access Layer" }
+      ],
+      "stats": {
+        "pages": 9,
+        "routingParams": 7
+      }
+    }
+  ],
+
+  "databases": [
+    {
+      "id": "agssa",
+      "name": "BD AGSSA",
+      "description": "Base de datos principal del sistema. Contiene toda la informacion de solicitudes, contratos, polizas, siniestros y configuracion.",
+      "type": "database",
+      "server": "10.254.35.16\\DEVELOPMENT",
+      "technology": "SQL Server",
+      "usedBy": ["agssasura", "portal-asesores", "landing"],
+      "entityGroups": [
+        {
+          "name": "Personas",
+          "entities": [
+            { "name": "CArrendador", "description": "Propietario del inmueble", "fields": ["Nombre", "Documento", "TipoDocumento", "Direccion", "Telefono", "Email"] },
+            { "name": "CArrendatarioPN", "description": "Inquilino persona natural", "fields": ["Nombre", "Apellidos", "Documento", "Email", "EstadoLaboral", "IngresosMensuales"] },
+            { "name": "CArrendatarioPJ", "description": "Inquilino persona juridica", "fields": ["RazonSocial", "NIT", "RepresentanteLegal"] },
+            { "name": "CCodeudor", "description": "Codeudor/avalista", "fields": ["Nombre", "Documento", "Email", "Parentesco", "Ingresos"] },
+            { "name": "CRepresentanteLegal", "description": "Representante legal de PJ", "fields": ["Nombres", "Apellidos", "Documento", "Email", "Telefono"] },
+            { "name": "CApoderado", "description": "Apoderado para firmar", "fields": ["Nombres", "Apellidos", "Documento", "Email", "Telefono"] }
+          ]
+        },
+        {
+          "name": "Negocio",
+          "entities": [
+            { "name": "CSolicitudes", "description": "Centro del modelo - solicitud de arriendo", "fields": ["IdSolicitud", "IdArrendador", "IdInmueble", "IdCodeudor", "IdContrato", "IdAnalisis", "Estado", "FechaRadicacion"], "isCenter": true },
+            { "name": "CContrato", "description": "Contrato de arrendamiento", "fields": ["IdContrato", "IdOrdenContrato", "FechaPagoPoliza", "FechaIniPoliza", "FechaFinPoliza", "CanonArrendamiento", "CuotaAdmon", "IdEstadoContrato", "ValorPrima", "Vigencia"] },
+            { "name": "CCotizacion", "description": "Cotizacion de seguro", "fields": ["IdCotizacion", "Tomador", "Afianzado", "Beneficiario", "Tasa", "Canon", "Prima", "Administracion", "Vigencia", "IVA", "TotalPagar"] },
+            { "name": "CRenovacion", "description": "Renovacion de poliza", "fields": ["IdRenovacion", "IdSolicitud", "NroPoliza", "CanonArrendamiento", "Administracion", "FechaInicioPoliza", "FechaFinPoliza", "VigenciaEnMeses", "Estado", "TotalPagar"] },
+            { "name": "CSiniestro", "description": "Reclamacion de seguro", "fields": ["IdSiniestro", "FechaSiniestro", "TotalDeuda", "NroPoliza", "LimiteIndemnizacion", "IdEstadoSiniestro", "IdTipoCierreSiniestro"] },
+            { "name": "CAnalisis", "description": "Analisis de riesgo", "fields": ["IdAnalisis", "Resultado", "Fechas", "Observaciones"] }
+          ]
+        },
+        {
+          "name": "Inmuebles",
+          "entities": [
+            { "name": "CInmueble", "description": "Datos del inmueble", "fields": ["Direccion", "Ciudad", "Municipio", "Estrato", "TipoBien", "ValorAsegurado"] },
+            { "name": "CDirecciones", "description": "Direcciones de riesgo", "fields": ["UbicacionRiesgos", "CodigosPostales", "Referencias"] },
+            { "name": "CInmobiliaria", "description": "Inmobiliaria afiliada", "fields": ["IdInmobiliaria", "RazonSocial", "Email", "Clave"] }
+          ]
+        },
+        {
+          "name": "Financiero",
+          "entities": [
+            { "name": "CCaja", "description": "Registro de caja", "fields": ["IdCaja", "Fecha", "Saldo", "Movimientos"] },
+            { "name": "CPagos", "description": "Pagos realizados", "fields": ["IdPago", "Monto", "Fecha", "MedioPago", "Estado"] },
+            { "name": "CComprobantePago", "description": "Comprobante de pago", "fields": ["NumeroRecibo", "Monto", "Concepto", "Beneficiario"] },
+            { "name": "CPolizaIndividual", "description": "Poliza individual", "fields": ["IdPoliza", "NumeroPoliza", "FechaInicio", "FechaFin", "Prima"] },
+            { "name": "CPolizaColectiva", "description": "Poliza colectiva", "fields": ["IdPoliza", "NumeroPoliza", "Cobertura"] }
+          ]
+        },
+        {
+          "name": "Configuracion",
+          "entities": [
+            { "name": "CUsuario", "description": "Usuarios del sistema", "fields": ["IdUsuario", "Cedula", "Nombre", "Email", "Contrasena"] },
+            { "name": "CRol", "description": "Roles de usuario", "fields": ["IdRol", "Nombre", "Permisos"] },
+            { "name": "CPermisos", "description": "Permisos por modulo", "fields": ["IdPermiso", "Descripcion", "Modulo"] },
+            { "name": "CParametros", "description": "Parametros del sistema", "fields": ["Codigo", "Valor", "Descripcion"] }
+          ]
+        },
+        {
+          "name": "Integraciones",
+          "entities": [
+            { "name": "CZohoSign", "description": "Config firma electronica", "fields": ["ClientId", "ClientSecret", "RefreshToken", "ApiBaseUrl"] },
+            { "name": "CBucketS3", "description": "Config AWS S3", "fields": ["BucketName", "AccessKey", "SecretKey", "Region"] },
+            { "name": "CServidorMail", "description": "Config SMTP", "fields": ["MailHost", "MailOrigen", "MailClave"] }
+          ]
+        }
+      ],
+      "storedProcedures": {
+        "solicitudes": ["P_CrearSolicitud", "P_ListarSolicitud6", "P_ListarSolicitud7", "P_ListarSolicitud22", "P_FiltroSolicitudP5", "P_LanzarSolicitud", "P_ActualizarSolicitud7"],
+        "analisis": ["P_CrearAnalisisSolicitud", "P_ListarConsultaMD", "P_InsertarResultadoMd", "P_InsertarResultadoMdAuto", "P_EmitirResultadoAnalisis"],
+        "contratos": ["P_ContratoVivienda", "P_ContratoComercio", "P_OtroSiVivienda", "P_OtroSiComercio", "P_Contratos13Load", "P_Contratos13Guardar"],
+        "polizas": ["P_Poliza14Load", "P_Poliza14GuardarCrear", "P_Poliza14Editar", "P_Poliza14Renovar", "P_Poliza14Cancelar"],
+        "siniestros": ["P_ListarInfoSiniestros_P27", "P_GuardarInfoSiniestro", "P_GuardarInfoSiniestroP24", "P_CerrarSiniestro", "P_InsertarIndemnizacion"],
+        "renovaciones": ["P_RenovacionesGrilla1", "P_ListarRenovacionByIdRenovacion", "P_RenovacionesInfoPDF", "P_RenovacionCotizador", "P_ActualizarRenovacion"],
+        "caja": ["P_ListarInfoCajaBySolicitud", "P_InsertarComprobantePago", "P_InsertarReciboPago", "P_CrearCaja", "P_ActualizarCaja"],
+        "usuarios": ["P_ValidarUsuario", "P_EditarClave", "P_ResetClave", "P_ListarPermisosByUsuario"],
+        "asignaciones": ["P_AsignarAnalistaP10", "P_AsignarEjecutivoP12", "P_AsignarSiniestroP23", "P_AsignarAutoAnalista"]
+      },
+      "relations": [
+        { "from": "CSolicitudes", "to": "CArrendador", "type": "1:1", "label": "tiene propietario" },
+        { "from": "CSolicitudes", "to": "CArrendatarioPN", "type": "1:1", "label": "tiene inquilino" },
+        { "from": "CSolicitudes", "to": "CCodeudor", "type": "1:N", "label": "tiene codeudores" },
+        { "from": "CSolicitudes", "to": "CInmueble", "type": "1:1", "label": "para inmueble" },
+        { "from": "CSolicitudes", "to": "CContrato", "type": "1:1", "label": "genera contrato" },
+        { "from": "CSolicitudes", "to": "CAnalisis", "type": "1:1", "label": "requiere analisis" },
+        { "from": "CSolicitudes", "to": "CCotizacion", "type": "1:N", "label": "tiene cotizaciones" },
+        { "from": "CContrato", "to": "CPolizaIndividual", "type": "1:1", "label": "genera poliza" },
+        { "from": "CContrato", "to": "CSiniestro", "type": "1:N", "label": "puede tener siniestros" },
+        { "from": "CContrato", "to": "CRenovacion", "type": "1:N", "label": "tiene renovaciones" },
+        { "from": "CInmobiliaria", "to": "CSolicitudes", "type": "1:N", "label": "gestiona solicitudes" },
+        { "from": "CSolicitudes", "to": "CCaja", "type": "1:1", "label": "tiene caja" },
+        { "from": "CCaja", "to": "CPagos", "type": "1:N", "label": "registra pagos" },
+        { "from": "CUsuario", "to": "CRol", "type": "N:1", "label": "tiene rol" },
+        { "from": "CRol", "to": "CPermisos", "type": "1:N", "label": "tiene permisos" },
+        { "from": "CArrendatarioPJ", "to": "CRepresentanteLegal", "type": "1:1", "label": "tiene representante" }
+      ]
+    },
+    {
+      "id": "radicaciones",
+      "name": "BD RADICACIONES",
+      "description": "Base de datos para el sistema de radicacion en linea. Almacena informacion temporal de radicaciones antes de pasar a AGSSA.",
+      "type": "database",
+      "server": "186.31.31.18",
+      "technology": "SQL Server",
+      "usedBy": ["radicacion"],
+      "entityGroups": [
+        {
+          "name": "Radicacion",
+          "entities": [
+            { "name": "TRadicacione", "description": "Radicacion principal", "fields": ["Id", "IdAgssa", "IdTipoGarantia", "FechaRegistro", "IdEstado", "TokenAcceso"], "isCenter": true },
+            { "name": "TInformacionBasica", "description": "Info inquilino/codeudor", "fields": ["Id", "IdRadicacion", "IdTipoInterviniente", "Nombres", "Apellidos", "Identificacion", "Celular", "Email"] },
+            { "name": "TInmueble", "description": "Datos inmueble", "fields": ["Id", "IdTipoInmueble", "IdTipoPlanSeguro", "Canon", "Administracion", "Direccion"] },
+            { "name": "TFacturacion", "description": "Datos facturacion", "fields": ["Id", "Nombre", "Identificacion", "Email", "Subtotal", "Iva", "Total"] },
+            { "name": "TPago", "description": "Pago Wompi", "fields": ["Id", "IdTransaccion", "Referencia", "Estado", "FirmaWompy"] },
+            { "name": "TValidacionesIdentidad", "description": "Intentos validacion", "fields": ["Id", "Metodo", "Exito", "FechaIntento"] }
+          ]
+        }
+      ],
+      "relations": [
+        { "from": "TRadicacione", "to": "TInformacionBasica", "type": "1:N", "label": "tiene intervinientes" },
+        { "from": "TRadicacione", "to": "TInmueble", "type": "1:1", "label": "para inmueble" },
+        { "from": "TRadicacione", "to": "TFacturacion", "type": "1:1", "label": "tiene facturacion" },
+        { "from": "TRadicacione", "to": "TPago", "type": "1:1", "label": "tiene pago" },
+        { "from": "TRadicacione", "to": "TValidacionesIdentidad", "type": "1:N", "label": "tiene validaciones" }
+      ]
+    }
+  ],
+
+  "modules": [
+    {
+      "id": "cotizaciones",
+      "code": 4,
+      "name": "Cotizaciones",
+      "description": "Creacion y gestion de cotizaciones de seguros de arrendamiento",
+      "system": "agssasura",
+      "pages": ["Cotizacion.aspx", "Cotizaciones_4.aspx", "Cotizaciones_Impresion.aspx"],
+      "storedProcedures": ["P_InsertarCotizacion", "P_ListarCotizacionByDocumento", "P_ListarCotizacionById"]
+    },
+    {
+      "id": "solicitudes",
+      "code": 5,
+      "name": "Solicitudes",
+      "description": "Gestion de solicitudes de arrendamiento",
+      "system": "agssasura",
+      "pages": ["Solicitudes_5.aspx", "Solicitudes_6.aspx", "Solicitudes_7.aspx", "Solicitudes_7Edit.aspx", "Solicitudes_8.aspx"],
+      "storedProcedures": ["P_CrearSolicitud", "P_ListarSolicitud6", "P_ListarSolicitud7", "P_FiltroSolicitudP5"]
+    },
+    {
+      "id": "analisis",
+      "code": 10,
+      "name": "Analisis de Riesgo",
+      "description": "Analisis de riesgo con motor de decision automatico",
+      "system": "agssasura",
+      "pages": ["Analisis_10.aspx", "Analisis_10A.aspx", "Analisis_11.aspx"],
+      "storedProcedures": ["P_CrearAnalisisSolicitud", "P_ListarConsultaMD", "P_InsertarResultadoMd", "P_EmitirResultadoAnalisis"],
+      "integrations": ["sura"]
+    },
+    {
+      "id": "contratos",
+      "code": 12,
+      "name": "Contratos",
+      "description": "Elaboracion de contratos con firma electronica",
+      "system": "agssasura",
+      "pages": ["Contratos_12.aspx", "Contratos_13.aspx", "ContratosZohoSign.aspx", "ProformaEditable.aspx"],
+      "storedProcedures": ["P_ContratoVivienda", "P_ContratoComercio", "P_Contratos13Load", "P_Contratos13Guardar"],
+      "integrations": ["zohosign", "aws-s3"]
+    },
+    {
+      "id": "caja",
+      "code": 21,
+      "name": "Caja",
+      "description": "Gestion de pagos: primer canon, canon mensual, otros conceptos",
+      "system": "agssasura",
+      "pages": ["Caja_21.aspx", "Caja_22.aspx", "Caja_23.aspx", "CajaRecibo.aspx"],
+      "storedProcedures": ["P_ListarInfoCajaBySolicitud", "P_InsertarComprobantePago", "P_InsertarReciboPago", "P_CrearCaja"]
+    },
+    {
+      "id": "siniestros",
+      "code": 23,
+      "name": "Siniestros",
+      "description": "Gestion de reclamaciones y siniestros de seguro",
+      "system": "agssasura",
+      "pages": ["Siniestros_23.aspx", "Siniestros_23A.aspx", "Siniestros_23B.aspx", "Siniestros_24.aspx", "Siniestros_25.aspx"],
+      "storedProcedures": ["P_ListarInfoSiniestros_P27", "P_GuardarInfoSiniestro", "P_CerrarSiniestro", "P_InsertarIndemnizacion"],
+      "states": ["ABIERTO", "EN_ESTUDIO", "APROBADO", "RECHAZADO", "CERRADO"]
+    },
+    {
+      "id": "renovaciones",
+      "code": 24,
+      "name": "Renovaciones",
+      "description": "Renovacion de polizas y contratos",
+      "system": "agssasura",
+      "pages": ["Renovaciones_24.aspx", "Renovaciones_24A.aspx", "Renovaciones_25.aspx", "RenovacionesSipro_24.aspx"],
+      "storedProcedures": ["P_RenovacionesGrilla1", "P_ListarRenovacionByIdRenovacion", "P_RenovacionCotizador", "P_ActualizarRenovacion"],
+      "subStates": ["PENDIENTE", "CONTACTANDO", "CONFIRMADA", "COTIZADA", "PAGADA", "RENOVADA", "NO_RENUEVA"]
+    },
+    {
+      "id": "inmobiliarias",
+      "code": 15,
+      "name": "Inmobiliarias",
+      "description": "Administracion de inmobiliarias afiliadas",
+      "system": "agssasura",
+      "pages": ["Inmobiliaria_15.aspx", "Inmobiliaria_16.aspx", "Inmobiliaria_17.aspx"],
+      "storedProcedures": ["P_InsertarInmobiliaria", "P_ListarInmobiliariaById", "P_ListarInmobiliaria17"]
+    },
+    {
+      "id": "admin",
+      "code": 0,
+      "name": "Administracion",
+      "description": "Gestion de usuarios, roles y configuracion del sistema",
+      "system": "agssasura",
+      "pages": ["AdminGestionUsuarios.aspx", "Menu.aspx", "Default.aspx", "ModificarClave.aspx"],
+      "storedProcedures": ["P_ValidarUsuario", "P_EditarClave", "P_ListarPermisosByUsuario", "P_InsertarPermisosUsuario"]
+    }
+  ],
+
+  "flows": [
+    {
+      "id": "radicacion",
+      "name": "Flujo de Radicacion",
+      "description": "Proceso completo desde que la inmobiliaria genera el link hasta que se crea la solicitud en AGSSA",
+      "type": "flow",
+      "dataFlowSummary": "Los datos se guardan temporalmente en BD RADICACIONES mientras el arrendatario completa el formulario y pago. Una vez confirmado el pago, se crea la solicitud definitiva en BD AGSSA mediante el servicio WCF ExternalSolutionService.",
+      "involvedDatabases": [
+        { "id": "radicaciones", "role": "temporal" },
+        { "id": "agssa", "role": "permanente" }
+      ],
+      "steps": [
+        { "order": 1, "system": "landing", "action": "Genera link de radicacion", "detail": "Inmobiliaria accede a LinksRadicacion.aspx y copia el link", "sp": "P_GenerarLinksInmobiliarias", "database": "agssa", "entity": "CInmobiliaria", "dbOperation": "read" },
+        { "order": 2, "system": "radicacion", "action": "Arrendatario accede al link", "detail": "LinksPersonalizadosController valida el token", "controller": "LinksPersonalizadosController" },
+        { "order": 3, "system": "radicacion", "action": "Completa formulario", "detail": "Datos personales, inmueble, propietario", "controller": "HomeController", "database": "radicaciones", "entity": "TRadicacione, TInformacionBasica, TInmueble", "dbOperation": "write" },
+        { "order": 4, "system": "radicacion", "action": "Valida reCAPTCHA", "detail": "Google reCAPTCHA v3", "service": "RecaptchaServices" },
+        { "order": 5, "system": "radicacion", "action": "Ingresa datos facturacion", "detail": "Nombre, documento, email para factura", "controller": "FacturacionPagoController", "database": "radicaciones", "entity": "TFacturacion", "dbOperation": "write" },
+        { "order": 6, "system": "radicacion", "action": "Valida convenio (opcional)", "detail": "Si tiene codigo de convenio, aplica descuento", "service": "ConvenioServices", "database": "agssa", "entity": "CConvenio", "dbOperation": "read" },
+        { "order": 7, "system": "wompi", "action": "Realiza pago", "detail": "Modal de Wompi procesa tarjeta", "integration": "wompi" },
+        { "order": 8, "system": "radicacion", "action": "Webhook recibe confirmacion", "detail": "Valida firma SHA256, verifica APPROVED", "controller": "ApiWompiController", "database": "radicaciones", "entity": "TPago", "dbOperation": "write" },
+        { "order": 9, "system": "radicacion", "action": "Crea solicitud en AGSSA", "detail": "Llama servicio WCF ExternalSolutionService - PUNTO DE SINCRONIZACION", "service": "ExternalServices", "wcf": "wcf-external-solution", "database": "agssa", "entity": "CSolicitudes, CArrendatarioPN, CInmueble", "dbOperation": "sync" },
+        { "order": 10, "system": "agssasura", "action": "Ejecuta Motor de Decision", "detail": "Analisis automatico de riesgo", "wcf": "wcf-motor-decision", "database": "agssa", "entity": "CAnalisis", "dbOperation": "write" },
+        { "order": 11, "system": "radicacion", "action": "Envia SMS confirmacion", "detail": "Notifica al arrendatario", "integration": "masivapp" },
+        { "order": 12, "system": "radicacion", "action": "Muestra pagina final", "detail": "Solicitud registrada, pendiente validacion", "controller": "FinalTransaccionController", "database": "radicaciones", "entity": "TRadicacione", "dbOperation": "write" }
+      ]
+    },
+    {
+      "id": "validacion-identidad",
+      "name": "Flujo de Validacion de Identidad",
+      "description": "Validacion biometrica del arrendatario usando TruValidate",
+      "type": "flow",
+      "dataFlowSummary": "Los intentos de validacion se registran en BD RADICACIONES. Una vez exitosa la validacion, se sincroniza el resultado con BD AGSSA mediante WCF para continuar el analisis de riesgo.",
+      "involvedDatabases": [
+        { "id": "radicaciones", "role": "temporal" },
+        { "id": "agssa", "role": "permanente" }
+      ],
+      "steps": [
+        { "order": 1, "system": "radicacion", "action": "Recibe link por SMS/Email", "detail": "Link con token unico de validacion" },
+        { "order": 2, "system": "radicacion", "action": "Verifica tipo documento", "detail": "CC/CE van a biometria, otros a formulario", "controller": "ValidacionIdentidadController", "database": "radicaciones", "entity": "TRadicacione", "dbOperation": "read" },
+        { "order": 3, "system": "truvalidate", "action": "Consulta orquestador", "detail": "API determina flujo: OTP o Biometria", "integration": "truvalidate" },
+        { "order": 4, "system": "truvalidate", "action": "Flujo OTP (si aplica)", "detail": "Envia SMS con codigo 6 digitos", "endpoint": "/queues/OTP_PhoneSelection" },
+        { "order": 5, "system": "radicacion", "action": "Usuario ingresa codigo OTP", "detail": "Valida codigo contra API", "controller": "ValidacionIdentidadController.ValidarOTP", "database": "radicaciones", "entity": "TValidacionesIdentidad", "dbOperation": "write" },
+        { "order": 6, "system": "radicacion", "action": "Captura documento", "detail": "Foto frente y reverso de cedula", "controller": "ValidacionIdentidadController.Documento" },
+        { "order": 7, "system": "truvalidate", "action": "Valida documento (OCR)", "detail": "Extrae datos y valida autenticidad", "endpoint": "/queues/TSO_ServiceInput" },
+        { "order": 8, "system": "radicacion", "action": "Captura selfie", "detail": "Foto del rostro del usuario", "controller": "ValidacionIdentidadController.Selfie" },
+        { "order": 9, "system": "truvalidate", "action": "Valida reconocimiento facial", "detail": "Compara selfie con foto del documento", "integration": "truvalidate" },
+        { "order": 10, "system": "radicacion", "action": "Guarda validacion", "detail": "Registra resultado en BD y sincroniza con AGSSA", "service": "ValidarIdentidadServices", "database": "radicaciones", "entity": "TValidacionesIdentidad", "dbOperation": "write" },
+        { "order": 11, "system": "radicacion", "action": "Sincroniza con AGSSA", "detail": "WCF GuardarValidacionIdentidad - PUNTO DE SINCRONIZACION", "wcf": "wcf-external-solution", "database": "agssa", "entity": "CSolicitudes", "dbOperation": "sync" },
+        { "order": 12, "system": "agssasura", "action": "Ejecuta Motor Decision", "detail": "Continua analisis de riesgo", "wcf": "wcf-motor-decision", "database": "agssa", "entity": "CAnalisis", "dbOperation": "write" }
+      ]
+    },
+    {
+      "id": "analisis-riesgo",
+      "name": "Flujo de Analisis de Riesgo",
+      "description": "Evaluacion de riesgo de la solicitud con motor de decision",
+      "type": "flow",
+      "dataFlowSummary": "Todo el proceso de analisis ocurre en BD AGSSA. La solicitud ya fue creada previamente y aqui se evalua el riesgo consultando centrales externas (SURA) y aplicando reglas de negocio.",
+      "involvedDatabases": [
+        { "id": "agssa", "role": "permanente" }
+      ],
+      "steps": [
+        { "order": 1, "system": "agssasura", "action": "Motor Decision ejecuta automatico", "detail": "Se activa despues de radicacion", "sp": "P_CrearAnalisisSolicitud", "database": "agssa", "entity": "CAnalisis", "dbOperation": "write" },
+        { "order": 2, "system": "agssasura", "action": "Obtiene datos para analisis", "detail": "Informacion de todas las partes", "sp": "P_ListarConsultaMD", "database": "agssa", "entity": "CSolicitudes, CArrendatarioPN, CCodeudor", "dbOperation": "read" },
+        { "order": 3, "system": "sura", "action": "Consulta centrales de riesgo", "detail": "Valida riesgos en SURA", "integration": "sura", "endpoint": "/validarriesgosmodulos" },
+        { "order": 4, "system": "agssasura", "action": "Asigna analista", "detail": "Si requiere revision manual", "sp": "P_AsignarAutoAnalista", "database": "agssa", "entity": "CAnalisis", "dbOperation": "write" },
+        { "order": 5, "system": "agssasura", "action": "Analista revisa", "detail": "Accede a Analisis_10.aspx", "page": "Analisis_10.aspx", "database": "agssa", "entity": "CAnalisis", "dbOperation": "read" },
+        { "order": 6, "system": "agssasura", "action": "Ejecuta tabla de verdad", "detail": "Combina resultados de partes", "method": "MNegocio.TablaVerdadAnalisis", "database": "agssa", "entity": "CAnalisis", "dbOperation": "read" },
+        { "order": 7, "system": "agssasura", "action": "Emite concepto", "detail": "APROBADO, RECHAZADO o APLAZADO", "sp": "P_EmitirResultadoAnalisis", "database": "agssa", "entity": "CAnalisis, CSolicitudes", "dbOperation": "write" },
+        { "order": 8, "system": "agssasura", "action": "Notifica asesor", "detail": "Email automatico con resultado", "service": "Email" }
+      ],
+      "results": ["APROBADO", "RECHAZADO", "APLAZADO"]
+    },
+    {
+      "id": "contrato",
+      "name": "Flujo de Contrato",
+      "description": "Elaboracion y firma electronica del contrato de arrendamiento",
+      "type": "flow",
+      "dataFlowSummary": "Todo el proceso de contratacion ocurre en BD AGSSA. Los documentos firmados se almacenan en AWS S3, pero la metadata y estados del contrato permanecen en AGSSA.",
+      "involvedDatabases": [
+        { "id": "agssa", "role": "permanente" }
+      ],
+      "steps": [
+        { "order": 1, "system": "agssasura", "action": "Asigna ejecutivo", "detail": "Para elaboracion del contrato", "sp": "P_AsignarEjecutivoP12", "page": "Contratos_12.aspx", "database": "agssa", "entity": "CSolicitudes", "dbOperation": "write" },
+        { "order": 2, "system": "agssasura", "action": "Carga datos contrato", "detail": "Informacion de solicitud aprobada", "sp": "P_Contratos13Load", "page": "Contratos_13.aspx", "database": "agssa", "entity": "CSolicitudes, CContrato", "dbOperation": "read" },
+        { "order": 3, "system": "agssasura", "action": "Selecciona tipo contrato", "detail": "Vivienda o Comercio", "sp": "P_ContratoVivienda o P_ContratoComercio", "database": "agssa", "entity": "CContrato", "dbOperation": "write" },
+        { "order": 4, "system": "agssasura", "action": "Genera documento PDF", "detail": "Usa iTextSharp para generar", "library": "iTextSharp" },
+        { "order": 5, "system": "agssasura", "action": "Identifica firmantes", "detail": "Propietario, Arrendatario, Codeudor", "method": "CContrato.ObtenerFirmantes", "database": "agssa", "entity": "CArrendador, CArrendatarioPN, CCodeudor", "dbOperation": "read" },
+        { "order": 6, "system": "zohosign", "action": "Envia a firma electronica", "detail": "API ZohoSign crea solicitud", "integration": "zohosign", "method": "EnviarContrato" },
+        { "order": 7, "system": "zohosign", "action": "Notifica firmantes", "detail": "Email con link para firmar", "integration": "zohosign" },
+        { "order": 8, "system": "zohosign", "action": "Firmantes firman", "detail": "Firma digital en plataforma Zoho", "integration": "zohosign" },
+        { "order": 9, "system": "agssasura", "action": "Recibe webhook de firma", "detail": "Zoho notifica firma completada", "integration": "zohosign", "database": "agssa", "entity": "CContrato", "dbOperation": "write" },
+        { "order": 10, "system": "aws-s3", "action": "Almacena contrato firmado", "detail": "PDF en bucket S3", "integration": "aws-s3", "path": "{ano}/{idsolicitud}.pdf" },
+        { "order": 11, "system": "agssasura", "action": "Guarda contrato", "detail": "Actualiza estado en BD", "sp": "P_Contratos13Guardar", "database": "agssa", "entity": "CContrato", "dbOperation": "write" },
+        { "order": 12, "system": "agssasura", "action": "Crea poliza", "detail": "Genera poliza de seguro", "sp": "P_Poliza14GuardarCrear", "page": "P14_PolizaDetalle.aspx", "database": "agssa", "entity": "CPolizaIndividual", "dbOperation": "write" }
+      ],
+      "states": ["PENDIENTE", "EN_ELABORACION", "ENVIADO_FIRMA", "FIRMADO", "ACTIVO"]
+    },
+    {
+      "id": "siniestro",
+      "name": "Flujo de Siniestro",
+      "description": "Proceso de reclamacion de seguro por incumplimiento",
+      "type": "flow",
+      "dataFlowSummary": "Todo el proceso de siniestros ocurre en BD AGSSA. La inmobiliaria reporta desde LandingInmobiliarias pero los datos se escriben directamente en AGSSA.",
+      "involvedDatabases": [
+        { "id": "agssa", "role": "permanente" }
+      ],
+      "steps": [
+        { "order": 1, "system": "landing", "action": "Reporta siniestro", "detail": "Inmobiliaria accede con F=ReporteSiniestro", "page": "Descargas.aspx?F=ReporteSiniestro", "database": "agssa", "entity": "CSolicitudes", "dbOperation": "read" },
+        { "order": 2, "system": "agssasura", "action": "Crea registro siniestro", "detail": "Marca solicitud como reclamacion", "sp": "P_MarcarSolicitudReclamacion", "database": "agssa", "entity": "CSiniestro", "dbOperation": "write" },
+        { "order": 3, "system": "agssasura", "action": "Asigna ejecutivo siniestros", "detail": "Analista o coordinador", "sp": "P_AsignarSiniestroP23", "page": "Siniestros_23.aspx", "database": "agssa", "entity": "CSiniestro", "dbOperation": "write" },
+        { "order": 4, "system": "agssasura", "action": "Envia notificacion", "detail": "Email al ejecutivo asignado", "service": "Email" },
+        { "order": 5, "system": "agssasura", "action": "Revisa caso", "detail": "Analiza documentos y deuda", "page": "Siniestros_25.aspx", "database": "agssa", "entity": "CSiniestro, CContrato", "dbOperation": "read" },
+        { "order": 6, "system": "agssasura", "action": "Documenta siniestro", "detail": "Fecha, monto, documentos soporte", "sp": "P_GuardarInfoSiniestro", "database": "agssa", "entity": "CSiniestro", "dbOperation": "write" },
+        { "order": 7, "system": "agssasura", "action": "Procesa indemnizacion", "detail": "Calcula monto a pagar", "sp": "P_InsertarIndemnizacion", "database": "agssa", "entity": "CSiniestro", "dbOperation": "write" },
+        { "order": 8, "system": "agssasura", "action": "Cierra siniestro", "detail": "Marca como resuelto", "sp": "P_CerrarSiniestro", "database": "agssa", "entity": "CSiniestro", "dbOperation": "write" }
+      ],
+      "states": ["ABIERTO", "EN_ESTUDIO", "APROBADO", "RECHAZADO", "CERRADO"]
+    },
+    {
+      "id": "renovacion",
+      "name": "Flujo de Renovacion",
+      "description": "Renovacion de polizas proximas a vencer",
+      "type": "flow",
+      "dataFlowSummary": "Todo el proceso de renovacion ocurre en BD AGSSA. El asesor puede consultar desde Portal-Asesores pero los datos se leen/escriben directamente en AGSSA.",
+      "involvedDatabases": [
+        { "id": "agssa", "role": "permanente" }
+      ],
+      "steps": [
+        { "order": 1, "system": "agssasura", "action": "Detecta proximas a vencer", "detail": "Consulta automatica periodica", "sp": "P_RenovacionesANotificar", "database": "agssa", "entity": "CRenovacion, CContrato", "dbOperation": "read" },
+        { "order": 2, "system": "agssasura", "action": "Notifica asesor", "detail": "Email con listado de renovaciones", "service": "Email" },
+        { "order": 3, "system": "portal-asesores", "action": "Asesor consulta renovaciones", "detail": "Dashboard de renovaciones", "page": "Renovaciones.cshtml", "database": "agssa", "entity": "CRenovacion", "dbOperation": "read" },
+        { "order": 4, "system": "agssasura", "action": "Contacta cliente", "detail": "Asesor se comunica con propietario", "subState": "CONTACTANDO", "database": "agssa", "entity": "CRenovacion", "dbOperation": "write" },
+        { "order": 5, "system": "agssasura", "action": "Confirma renovacion", "detail": "Nuevo canon y administracion", "subState": "CONFIRMADA", "database": "agssa", "entity": "CRenovacion", "dbOperation": "write" },
+        { "order": 6, "system": "agssasura", "action": "Cotiza renovacion", "detail": "Calcula nueva prima", "sp": "P_RenovacionCotizador", "database": "agssa", "entity": "CRenovacion", "dbOperation": "write" },
+        { "order": 7, "system": "agssasura", "action": "Genera PDF", "detail": "Documento de renovacion", "sp": "P_RenovacionesInfoPDF", "database": "agssa", "entity": "CRenovacion", "dbOperation": "read" },
+        { "order": 8, "system": "agssasura", "action": "Registra pago", "detail": "Cliente paga renovacion", "subState": "PAGADA", "database": "agssa", "entity": "CRenovacion, CPagos", "dbOperation": "write" },
+        { "order": 9, "system": "agssasura", "action": "Actualiza renovacion", "detail": "Guarda cambios", "sp": "P_ActualizarRenovacion", "database": "agssa", "entity": "CRenovacion", "dbOperation": "write" },
+        { "order": 10, "system": "agssasura", "action": "Emite nueva poliza", "detail": "Genera poliza renovada", "sp": "P_Poliza14Renovar", "database": "agssa", "entity": "CPolizaIndividual", "dbOperation": "write" }
+      ],
+      "subStates": ["PENDIENTE", "CONTACTANDO", "CONFIRMADA", "COTIZADA", "PAGADA", "RENOVADA", "NO_RENUEVA"]
+    }
+  ],
+
+  "integrations": [
+    {
+      "id": "wompi",
+      "name": "Wompi",
+      "description": "Pasarela de pagos para procesar tarjetas de credito/debito",
+      "type": "external",
+      "category": "payments",
+      "usedBy": ["radicacion"],
+      "baseUrl": "https://sandbox.wompi.co/v1",
+      "authentication": "API Keys (Public + Private)",
+      "endpoints": [
+        { "method": "POST", "path": "/transactions", "description": "Crear transaccion" },
+        { "method": "GET", "path": "/transactions/{id}", "description": "Consultar estado" }
+      ],
+      "webhook": {
+        "path": "/api/wompi/",
+        "validation": "SHA256 signature",
+        "events": ["APPROVED", "DECLINED", "PENDING", "VOIDED"]
+      }
+    },
+    {
+      "id": "truvalidate",
+      "name": "TruValidate (TransUnion)",
+      "description": "Validacion biometrica de identidad: OTP, documento y reconocimiento facial",
+      "type": "external",
+      "category": "identity",
+      "usedBy": ["radicacion"],
+      "baseUrl": "https://www.transuniondecisioncentre.com.mx/TU.DE.PONT_LATAM/",
+      "authentication": "OAuth 2.0 (username/password)",
+      "endpoints": [
+        { "method": "POST", "path": "/token", "description": "Obtener token Bearer" },
+        { "method": "POST", "path": "/applications", "description": "Orquestador - determina flujo" },
+        { "method": "POST", "path": "/applications/{id}/queues/OTP_PhoneSelection", "description": "Solicitar OTP SMS" },
+        { "method": "POST", "path": "/applications/{id}/queues/OTP_PinVerification_OTPInput", "description": "Validar OTP" },
+        { "method": "POST", "path": "/applications/{id}/documents", "description": "Crear placeholder documento" },
+        { "method": "POST", "path": "/documents/{imgId}", "description": "Subir imagen" },
+        { "method": "POST", "path": "/applications/{id}/queues/TSO_ServiceInput", "description": "Validar documento/selfie" }
+      ],
+      "flows": ["OTP", "Biometria (Documento + Selfie)", "Formulario manual"]
+    },
+    {
+      "id": "zohosign",
+      "name": "ZohoSign",
+      "description": "Firma electronica de contratos de arrendamiento",
+      "type": "external",
+      "category": "signature",
+      "usedBy": ["agssasura"],
+      "baseUrl": "https://sign.zoho.com/api/v1",
+      "tokenUrl": "https://accounts.zoho.com/oauth/v2/token",
+      "authentication": "OAuth 2.0 (refresh_token)",
+      "endpoints": [
+        { "method": "POST", "path": "/requests", "description": "Crear solicitud de firma" },
+        { "method": "POST", "path": "/requests/{id}/submit", "description": "Enviar para firma" },
+        { "method": "GET", "path": "/requests", "description": "Listar solicitudes" },
+        { "method": "GET", "path": "/requests/{id}", "description": "Detalle solicitud" },
+        { "method": "GET", "path": "/requests/{id}/documents/{docId}/pdf", "description": "Descargar documento" },
+        { "method": "GET", "path": "/requests/{id}/completioncertificate", "description": "Certificado de firma" }
+      ]
+    },
+    {
+      "id": "aws-s3",
+      "name": "AWS S3",
+      "description": "Almacenamiento de contratos firmados y documentos",
+      "type": "external",
+      "category": "storage",
+      "usedBy": ["agssasura"],
+      "bucket": "agssa-nas",
+      "region": "us-east-1",
+      "pathPattern": "{year}/{solicitudId}.pdf",
+      "operations": ["SubirArchivo", "DownloadFile"]
+    },
+    {
+      "id": "masivapp",
+      "name": "MasivApp",
+      "description": "Envio de SMS para notificaciones y codigos OTP",
+      "type": "external",
+      "category": "notifications",
+      "usedBy": ["radicacion"],
+      "baseUrl": "https://api-sms.masivapp.com",
+      "authentication": "HTTP Basic Auth",
+      "endpoints": [
+        { "method": "POST", "path": "/send-message", "description": "Enviar SMS" }
+      ]
+    },
+    {
+      "id": "sura",
+      "name": "SURA Cotizador",
+      "description": "Consulta de riesgos y validacion en centrales SURA",
+      "type": "external",
+      "category": "risk",
+      "usedBy": ["agssasura"],
+      "baseUrl": "https://cotizador.sura.com",
+      "authentication": "HTTP Basic Auth",
+      "endpoints": [
+        { "method": "POST", "path": "/regulacion/secureCommand/validarriesgosmodulos", "description": "Validar riesgos" }
+      ],
+      "request": { "modulo": "%", "ciudad": "%", "tipoRiesgo": "01", "riesgo": "CODIGO+DOCUMENTO" },
+      "response": { "esRiesgo": "boolean", "tipoValidacion": "string", "mensajeValidacion": "string" }
+    },
+    {
+      "id": "hubspot",
+      "name": "HubSpot",
+      "description": "Formularios de contacto y captura de leads",
+      "type": "external",
+      "category": "marketing",
+      "usedBy": ["landing"],
+      "integration": "Embedded forms"
+    }
+  ],
+
+  "wcfServices": [
+    {
+      "id": "wcf-external-solution",
+      "name": "ExternalSolutionService",
+      "description": "Servicio para crear solicitudes en AGSSA desde sistemas externos",
+      "type": "wcf",
+      "url": "http://186.31.31.18:80/ExternalSolutionService.svc",
+      "port": 80,
+      "binding": "basicHttpBinding",
+      "usedBy": ["radicacion"],
+      "methods": ["CrearSolicitudAsync", "GuardarValidacionIdentidad", "ExtraerDocumentoRadicacion", "ValidacionIdentidadEstadoSolicitud"]
+    },
+    {
+      "id": "wcf-motor-decision",
+      "name": "MotorDecisionService",
+      "description": "Motor de decision para analisis automatico de riesgo",
+      "type": "wcf",
+      "url": "http://186.31.31.18:86/MotorDecisionService.svc",
+      "port": 86,
+      "binding": "basicHttpBinding",
+      "usedBy": ["radicacion", "agssasura"],
+      "methods": ["EjecutarMotorDecisionAsync"]
+    },
+    {
+      "id": "wcf-arrendamiento-central",
+      "name": "ServicioArrendamientoCentral",
+      "description": "Servicio central de comunicacion entre sistemas",
+      "type": "wcf",
+      "url": "http://52.170.23.68:81/ServicioArrendamientoCentral.svc",
+      "port": 81,
+      "binding": "basicHttpBinding",
+      "usedBy": ["agssasura"],
+      "methods": ["ConsultarEstado", "SincronizarDatos"]
+    }
+  ],
+
+  "connections": [
+    { "from": "landing", "to": "radicacion", "label": "Genera link", "type": "user-flow" },
+    { "from": "radicacion", "to": "agssasura", "label": "Crea solicitud (WCF)", "type": "integration" },
+    { "from": "radicacion", "to": "wompi", "label": "Procesa pago", "type": "external" },
+    { "from": "radicacion", "to": "truvalidate", "label": "Valida identidad", "type": "external" },
+    { "from": "radicacion", "to": "masivapp", "label": "Envia SMS", "type": "external" },
+    { "from": "agssasura", "to": "zohosign", "label": "Firma contratos", "type": "external" },
+    { "from": "agssasura", "to": "aws-s3", "label": "Almacena documentos", "type": "external" },
+    { "from": "agssasura", "to": "sura", "label": "Consulta riesgos", "type": "external" },
+    { "from": "agssasura", "to": "agssa", "label": "Lee/Escribe", "type": "database" },
+    { "from": "radicacion", "to": "radicaciones", "label": "Lee/Escribe", "type": "database" },
+    { "from": "portal-asesores", "to": "agssa", "label": "Lee/Escribe", "type": "database" },
+    { "from": "landing", "to": "agssa", "label": "Lee", "type": "database" },
+    { "from": "portal-asesores", "to": "agssasura", "label": "Consulta datos", "type": "internal" }
+  ]
+}
