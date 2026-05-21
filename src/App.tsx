@@ -8,6 +8,7 @@ import { DatabaseView } from './views/DatabaseView';
 import { IntegrationsView } from './views/IntegrationsView';
 import { ConceptsView } from './views/ConceptsView';
 import { ModulesView } from './views/ModulesView';
+import DataFlowView from './views/DataFlowView';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path="integraciones" element={<IntegrationsView />} />
             <Route path="modulos" element={<ModulesView />} />
             <Route path="conceptos" element={<ConceptsView />} />
+            <Route path="flujo-datos" element={<DataFlowView />} />
           </Route>
         </Routes>
       </BrowserRouter>

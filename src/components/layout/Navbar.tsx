@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Sun, Moon, Box, GitBranch, Database, Plug, Network, BookOpen, LayoutGrid } from 'lucide-react';
+import { Sun, Moon, Box, GitBranch, Database, Plug, Network, BookOpen, LayoutGrid, Workflow } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
 export function Navbar() {
@@ -47,6 +47,10 @@ export function Navbar() {
         <NavLink to="/modulos" className={linkClass}>
           <LayoutGrid size={18} />
           <span className="hidden sm:inline">Módulos</span>
+        </NavLink>
+        <NavLink to="/flujo-datos" className={linkClass}>
+          <Workflow size={18} />
+          <span className="hidden sm:inline">Flujo Datos</span>
         </NavLink>
         <NavLink to="/conceptos" className={linkClass}>
           <BookOpen size={18} />
