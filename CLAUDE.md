@@ -126,6 +126,13 @@ La vista de Conceptos tiene las siguientes secciones expandibles:
 - **AGSSA** - 88 entidades, 120+ SPs (usada por todos los sistemas)
 - **RADICACIONES** - 11 tablas (usada por RadicacionEnLinea)
 
+### Backup de Base de Datos (Local)
+Copia local del backup de produccion para analisis:
+- **Ubicacion:** `BD/` (excluida de git por tamano)
+- **Archivo:** `BackUpProdAGSSA_2026-05-07.bak` (~5GB)
+- **Formato:** SQL Server backup nativo
+- **Para restaurar:** Requiere SQL Server, usar `RESTORE DATABASE`
+
 ### Servidores SQL
 
 | Servidor | Ambiente | Base de Datos | Quien lo usa |
