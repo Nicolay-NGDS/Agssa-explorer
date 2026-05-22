@@ -32,12 +32,13 @@ function EntityNode({ data }: { data: { entity: Entity; groupName: string; dbId:
     'Configuracion': 'border-gray-500 bg-gray-50 dark:bg-gray-900/30',
     'Integraciones': 'border-pink-500 bg-pink-50 dark:bg-pink-900/30',
     'Radicacion': 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30',
+    'Catalogos': 'border-slate-400 bg-slate-100 dark:bg-slate-800/40',
   };
 
   const colorClass = groupColors[groupName] || 'border-gray-500 bg-gray-50 dark:bg-gray-900/30';
 
   return (
-    <div className={`rounded-lg border-2 shadow-lg min-w-[160px] ${colorClass} ${
+    <div className={`rounded-lg border-2 shadow-lg min-w-[180px] max-w-[220px] ${colorClass} ${
       isCenter ? 'ring-2 ring-emerald-500 ring-offset-2' : ''
     }`}>
       {/* Connection handles */}
@@ -74,9 +75,9 @@ function EntityNode({ data }: { data: { entity: Entity; groupName: string; dbId:
         </div>
       </div>
 
-      {/* Fields */}
-      <div className="px-2 py-1 max-h-[120px] overflow-y-auto">
-        {entity.fields.slice(0, 6).map((field, i) => (
+      {/* Fields - All fields with scroll */}
+      <div className="px-2 py-1 max-h-[200px] overflow-y-auto">
+        {entity.fields.map((field, i) => (
           <div
             key={i}
             className={`text-[10px] px-1 py-0.5 ${
@@ -86,11 +87,6 @@ function EntityNode({ data }: { data: { entity: Entity; groupName: string; dbId:
             {field}
           </div>
         ))}
-        {entity.fields.length > 6 && (
-          <div className="text-[10px] text-gray-400 px-1">
-            +{entity.fields.length - 6} más...
-          </div>
-        )}
       </div>
 
       {/* Footer */}
@@ -114,8 +110,8 @@ function getLayoutedElements(
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-  const nodeWidth = 180;
-  const nodeHeight = 150;
+  const nodeWidth = 200;
+  const nodeHeight = 280;
 
   dagreGraph.setGraph({
     rankdir: direction,
@@ -212,6 +208,7 @@ export function ERDiagramView({ database }: ERDiagramViewProps) {
     { name: 'Configuracion', color: 'bg-gray-500' },
     { name: 'Integraciones', color: 'bg-pink-500' },
     { name: 'Radicacion', color: 'bg-emerald-500' },
+    { name: 'Catalogos', color: 'bg-slate-400' },
   ];
 
   return (
@@ -241,6 +238,7 @@ export function ERDiagramView({ database }: ERDiagramViewProps) {
               'Configuracion': '#6b7280',
               'Integraciones': '#ec4899',
               'Radicacion': '#10b981',
+              'Catalogos': '#94a3b8',
             };
             return colors[groupName] || '#6b7280';
           }}

@@ -242,21 +242,141 @@
         {
           "name": "Radicacion",
           "entities": [
-            { "name": "TRadicacione", "description": "Radicacion principal", "fields": ["Id", "IdAgssa", "IdTipoGarantia", "FechaRegistro", "IdEstado", "TokenAcceso"], "isCenter": true },
-            { "name": "TInformacionBasica", "description": "Info inquilino/codeudor", "fields": ["Id", "IdRadicacion", "IdTipoInterviniente", "Nombres", "Apellidos", "Identificacion", "Celular", "Email"] },
-            { "name": "TInmueble", "description": "Datos inmueble", "fields": ["Id", "IdTipoInmueble", "IdTipoPlanSeguro", "Canon", "Administracion", "Direccion"] },
-            { "name": "TFacturacion", "description": "Datos facturacion", "fields": ["Id", "Nombre", "Identificacion", "Email", "Subtotal", "Iva", "Total"] },
-            { "name": "TPago", "description": "Pago Wompi", "fields": ["Id", "IdTransaccion", "Referencia", "Estado", "FirmaWompy"] },
-            { "name": "TValidacionesIdentidad", "description": "Intentos validacion", "fields": ["Id", "Metodo", "Exito", "FechaIntento"] }
+            {
+              "name": "TRadicacione",
+              "description": "Radicacion principal - tabla central de BD RADICACIONES",
+              "fields": ["Id", "IdAgssa", "IdTipoGarantia", "FechaRegistro", "IdEstado", "TokenAcceso", "FechaToken", "Observaciones", "TInmobiliarium (FK)", "TAsesore (FK)", "TFacturacion (1:1)", "TInmueble (1:1)", "TPropietario (1:1)", "TInformacionBasicas (1:N)"],
+              "isCenter": true
+            },
+            {
+              "name": "TInformacionBasica",
+              "description": "Datos personales del inquilino y codeudor",
+              "fields": ["Id", "IdRadicacion", "IdTipoInterviniente", "IdTipoPersona", "IdTipoIdentificacion", "Identificacion", "Nombres", "PrimerApellido", "SegundoApellido", "Email", "Celular", "FechaNacimiento", "FechaExpedicionDoc", "Direccion", "IdCiudad", "Relacion", "CodeudorAdicional", "LinkValidacionIdentidad"]
+            },
+            {
+              "name": "TActividadEconomica",
+              "description": "Situacion laboral del inquilino/codeudor",
+              "fields": ["Id (FK TInfoBasica)", "IdTipoActividad", "Compania", "Ocupacion", "Cargo", "PersonasACargo"]
+            },
+            {
+              "name": "TReferencia",
+              "description": "Referencias personales y familiares",
+              "fields": ["Id", "IdInfoBasica", "IdTipoReferencia", "Nombre", "Celular"]
+            },
+            {
+              "name": "TInmueble",
+              "description": "Datos del inmueble a arrendar",
+              "fields": ["Id (FK TRadicacione)", "IdTipoInmueble", "IdTipoPlanSeguro", "IdDestinacion", "Canon", "Administracion", "Direccion", "IdCiudad", "IdDepartamento", "DetalleDestinacion"]
+            },
+            {
+              "name": "TPropietario",
+              "description": "Datos del propietario/arrendador",
+              "fields": ["Id (FK TRadicacione)", "Nombres", "Apellidos", "IdTipoIdentificacion", "Identificacion", "Celular", "Email"]
+            },
+            {
+              "name": "TFacturacion",
+              "description": "Datos de facturacion para pago de estudio",
+              "fields": ["Id (FK TRadicacione)", "Nombre", "Apellido", "IdTipoDocumento", "Identificacion", "Celular", "Email", "Direccion", "IdTipoContribuyente", "Subtotal", "Iva", "Total", "Observaciones", "IdConvenio"]
+            },
+            {
+              "name": "TPago",
+              "description": "Registro del pago realizado via Wompi",
+              "fields": ["Id (FK TFacturacion)", "IdTransaccion", "Referencia", "Estado", "FirmaWompy", "Ambiente"]
+            },
+            {
+              "name": "TValidacionesIdentidad",
+              "description": "Registro de cada intento de validacion con TruValidate",
+              "fields": ["IdValidacion", "IdInformacionBasica", "IdMetodo", "Completada", "Fecha", "Observacion", "Intentos"]
+            },
+            {
+              "name": "TRepresentanteLegal",
+              "description": "Datos del representante legal (solo si TipoPersona=Juridica)",
+              "fields": ["Id (FK TInfoBasica)", "Nombres", "PrimerApellido", "SegundoApellido", "IdTipoIdentificacion", "Identificacion", "Celular", "Email"]
+            },
+            {
+              "name": "TCodeudorGarantium",
+              "description": "Codeudor para garantia Fiducuenta (solo si TipoGarantia=2)",
+              "fields": ["Id", "IdRadicacion", "Nombre", "Email", "Celular"]
+            }
+          ]
+        },
+        {
+          "name": "Catalogos",
+          "entities": [
+            {
+              "name": "TTipoGarantia",
+              "description": "Tipos de garantia disponibles",
+              "fields": ["Id", "Descripcion", "--- Valores ---", "1 = Fianza", "2 = Fiducuenta", "3 = Sin garantia"]
+            },
+            {
+              "name": "TTipoEstadoRadicacion",
+              "description": "Estados posibles de una radicacion",
+              "fields": ["Id", "Descripcion", "--- Valores ---", "1 = Iniciada", "2 = Formulario completo", "3 = Pagada", "4 = Validacion pendiente", "5 = Completada", "6 = Sincronizada AGSSA"]
+            },
+            {
+              "name": "TTipoInterviniente",
+              "description": "Tipos de persona en la radicacion",
+              "fields": ["Id", "Descripcion", "--- Valores ---", "1 = Inquilino/Arrendatario", "2 = Codeudor"]
+            },
+            {
+              "name": "TTipoPersona",
+              "description": "Persona natural o juridica",
+              "fields": ["Id", "Descripcion", "--- Valores ---", "1 = Natural", "2 = Juridica"]
+            },
+            {
+              "name": "TTipoIdentificacion",
+              "description": "Tipos de documento de identidad",
+              "fields": ["Id", "Descripcion", "--- Valores ---", "1 = CC (Cedula)", "2 = CE (Extranjeria)", "3 = Pasaporte", "5 = NIT"]
+            },
+            {
+              "name": "TTipoActividadEconomica",
+              "description": "Situacion laboral",
+              "fields": ["Id", "Descripcion", "--- Valores ---", "1 = Independiente", "2 = Pensionado", "3 = Empleado", "4 = Empresa"]
+            },
+            {
+              "name": "TTipoInmueble",
+              "description": "Tipos de inmueble",
+              "fields": ["Id", "Descripcion", "--- Valores ---", "1 = Apartamento", "2 = Casa", "3 = Local", "4 = Oficina", "5 = Bodega"]
+            },
+            {
+              "name": "TTipoPlanSeguro",
+              "description": "Planes de seguro disponibles",
+              "fields": ["Id", "Descripcion", "--- Valores ---", "1 = Clasico", "2 = Global"]
+            },
+            {
+              "name": "TDestinacionInmueble",
+              "description": "Uso del inmueble",
+              "fields": ["Id", "Descripcion", "--- Valores ---", "1 = Vivienda", "2 = Comercio"]
+            },
+            {
+              "name": "TTipoReferencia",
+              "description": "Tipos de referencia personal",
+              "fields": ["Id", "Descripcion", "--- Valores ---", "1 = Familiar", "2 = Personal"]
+            },
+            {
+              "name": "TMetodosValidacionIdentidad",
+              "description": "Metodos de validacion TruValidate",
+              "fields": ["Id", "Metodo", "--- Valores ---", "1 = OTP SMS", "2 = Biometria documento", "3 = Biometria selfie", "4 = Formulario manual", "5 = VelocityCheck", "6 = IDV", "7 = SimSwap"]
+            },
+            {
+              "name": "TConvenio",
+              "description": "Codigos de descuento/convenio",
+              "fields": ["Id", "Codigo", "Valor", "IdTipoConvenio", "FechaInicio", "FechaFin", "NumeroUsos", "Aplicados", "Vigente", "Observaciones"]
+            }
           ]
         }
       ],
       "relations": [
         { "from": "TRadicacione", "to": "TInformacionBasica", "type": "1:N", "label": "tiene intervinientes" },
         { "from": "TRadicacione", "to": "TInmueble", "type": "1:1", "label": "para inmueble" },
+        { "from": "TRadicacione", "to": "TPropietario", "type": "1:1", "label": "tiene propietario" },
         { "from": "TRadicacione", "to": "TFacturacion", "type": "1:1", "label": "tiene facturacion" },
-        { "from": "TRadicacione", "to": "TPago", "type": "1:1", "label": "tiene pago" },
-        { "from": "TRadicacione", "to": "TValidacionesIdentidad", "type": "1:N", "label": "tiene validaciones" }
+        { "from": "TRadicacione", "to": "TCodeudorGarantium", "type": "1:N", "label": "tiene codeudores garantia" },
+        { "from": "TFacturacion", "to": "TPago", "type": "1:1", "label": "tiene pago" },
+        { "from": "TInformacionBasica", "to": "TActividadEconomica", "type": "1:1", "label": "tiene actividad economica" },
+        { "from": "TInformacionBasica", "to": "TReferencia", "type": "1:N", "label": "tiene referencias" },
+        { "from": "TInformacionBasica", "to": "TRepresentanteLegal", "type": "1:1", "label": "tiene rep. legal" },
+        { "from": "TInformacionBasica", "to": "TValidacionesIdentidad", "type": "1:N", "label": "tiene validaciones" }
       ]
     }
   ],

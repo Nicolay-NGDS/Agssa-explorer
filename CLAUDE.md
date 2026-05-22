@@ -52,15 +52,16 @@ npm run lint     # Linter
 ```
 src/
 ├── components/
-│   ├── diagrams/        # SimpleArchitectureDiagram (diagrama de arquitectura)
+│   ├── diagrams/        # SimpleArchitectureDiagram, ERDiagramView
 │   ├── nodes/           # Nodos personalizados React Flow
-│   ├── panels/          # Paneles de detalle
+│   ├── panels/          # Paneles de detalle (NotesPanel, etc.)
 │   └── layout/          # Navbar, Layout
 ├── views/
 │   ├── EcosystemView.tsx    # Dashboard con stats y cards de sistemas
 │   ├── DiagramView.tsx      # Diagrama de arquitectura (separado)
 │   ├── FlowsView.tsx        # Flujos de negocio
-│   ├── DatabaseView.tsx     # Entidades de BD
+│   ├── DataFlowView.tsx     # Flujo de datos Poliza Individual (paso a paso)
+│   ├── DatabaseView.tsx     # Entidades de BD + Diagrama ER
 │   ├── ModulesView.tsx      # Modulos de AGSSAsura y sus entidades
 │   ├── ConceptsView.tsx     # Documentacion conceptual expandible
 │   └── IntegrationsView.tsx # Integraciones externas
@@ -84,8 +85,9 @@ src/
 /ecosistema             → Dashboard con stats y cards de sistemas/BD
 /diagrama               → Diagrama de arquitectura (conexiones visuales)
 /flujos                 → Lista de flujos de negocio
-/base-datos             → Vista de entidades
-/modulos                → Modulos de AGSSAsura con entidades
+/flujo-datos            → DataFlowView - Visualizacion del flujo de datos por etapas
+/base-datos             → Vista de entidades con diagrama ER
+/modulos                → Modulos de AGSSAsura con sus entidades
 /conceptos              → Documentacion conceptual (secciones expandibles)
 /integraciones          → Servicios externos
 ```
@@ -124,7 +126,40 @@ La vista de Conceptos tiene las siguientes secciones expandibles:
 
 ### Bases de Datos
 - **AGSSA** - 88 entidades, 120+ SPs (usada por todos los sistemas)
-- **RADICACIONES** - 11 tablas (usada por RadicacionEnLinea)
+- **RADICACIONES** - 23 tablas total (11 del flujo + 12 catalogos)
+
+### BD RADICACIONES - Estructura Completa
+
+**Tablas del Flujo (11):**
+| Tabla | Descripcion | Campos principales |
+|-------|-------------|-------------------|
+| TRadicacione | Tabla central | Id, IdAgssa, IdTipoGarantia, IdEstado, TokenAcceso |
+| TInformacionBasica | Inquilino/Codeudor | Identificacion, Nombres, Email, Celular |
+| TActividadEconomica | Situacion laboral | IdTipoActividad, Compania, Cargo |
+| TReferencia | Referencias personales | IdTipoReferencia, Nombre, Celular |
+| TInmueble | Datos inmueble | Canon, Administracion, Direccion, IdCiudad |
+| TPropietario | Datos arrendador | Nombres, Identificacion, Email |
+| TFacturacion | Facturacion pago | Subtotal, Iva, Total, IdConvenio |
+| TPago | Pago Wompi | IdTransaccion, Estado, FirmaWompy |
+| TValidacionesIdentidad | Intentos TruValidate | IdMetodo, Completada, Intentos |
+| TRepresentanteLegal | Solo si juridica | Nombres, Identificacion (del rep. legal) |
+| TCodeudorGarantium | Solo Fiducuenta | Nombre, Email (codeudor de garantia) |
+
+**Tablas de Catalogos (12):**
+| Tabla | Valores |
+|-------|---------|
+| TTipoGarantia | 1=Fianza, 2=Fiducuenta, 3=Sin garantia |
+| TTipoEstadoRadicacion | 1=Iniciada ... 6=Sincronizada |
+| TTipoInterviniente | 1=Inquilino, 2=Codeudor |
+| TTipoPersona | 1=Natural, 2=Juridica |
+| TTipoIdentificacion | 1=CC, 2=CE, 3=Pasaporte, 5=NIT |
+| TTipoActividadEconomica | 1=Independiente, 2=Pensionado, 3=Empleado, 4=Empresa |
+| TTipoInmueble | 1=Apartamento, 2=Casa, 3=Local, etc. |
+| TTipoPlanSeguro | 1=Clasico, 2=Global |
+| TDestinacionInmueble | 1=Vivienda, 2=Comercio |
+| TTipoReferencia | 1=Familiar, 2=Personal |
+| TMetodosValidacionIdentidad | 1=OTP, 2=Biometria doc, 3=Selfie, etc. |
+| TConvenio | Codigos de descuento activos |
 
 ### Backup de Base de Datos (Local)
 Copia local del backup de produccion para analisis:
@@ -213,3 +248,47 @@ Tooltips deben ser `position: absolute` para no afectar el tamano del padre.
 - AGSSAsura es el "corazon central" - todos los sistemas se conectan a el
 - El motor de decision es MANUAL, no automatico
 - Los datos de arquitectura vienen de C:\Work\Prosear\Agssa\ARQUITECTURA
+
+## Estado de Vistas (Mayo 2026)
+
+| Vista | Estado | Notas |
+|-------|--------|-------|
+| EcosystemView | Completa | Dashboard principal con stats |
+| DiagramView | Completa | Diagrama arquitectura con React Flow |
+| DatabaseView | Completa | Lista + Diagrama ER con todos los campos |
+| DataFlowView | Completa | Flujo Poliza Individual paso a paso |
+| FlowsView | Completa | 6 flujos de negocio |
+| ModulesView | Completa | Modulos AGSSAsura |
+| ConceptsView | Completa | 11 secciones expandibles |
+| IntegrationsView | Completa | 8 integraciones externas |
+
+### DataFlowView - Detalle
+Vista interactiva que muestra el ciclo de vida de datos para **Poliza Individual**:
+- 8 etapas: Formulario → Pago → Sync → Analisis → Contrato → Poliza → Siniestro → Renovacion
+- Muestra que tablas se crean/modifican en cada etapa
+- Indica que campos se llenan en cada paso (nuevo/ya llenado/pendiente)
+- Datos completos de BD RADICACIONES (T*) y BD AGSSA (C*)
+- Controles: navegacion por pasos + boton Play para auto-reproducir
+
+### ERDiagramView - Mejoras recientes
+- Muestra TODOS los campos de cada tabla (antes solo mostraba 6)
+- Grupos diferenciados por color: Radicacion (verde), Catalogos (gris)
+- Layout con Dagre para auto-posicionamiento
+- Scroll interno en nodos con muchos campos
+
+## Historial de Desarrollo
+
+### 2026-05-21
+- Agregadas tablas de catalogos a BD RADICACIONES (12 tablas)
+- ERDiagramView ahora muestra todos los campos (sin limite de 6)
+- Colores diferenciados para grupo "Catalogos" (gris/slate)
+
+### 2026-05-20
+- Creado DataFlowView con flujo completo de Poliza Individual
+- Campos completos de todas las tablas T* y C*
+- Fix Layout.tsx overflow para scroll
+
+### 2026-05-19
+- Commit inicial del proyecto
+- Estructura base con React 19 + Vite + Tailwind 4
+- Vistas principales implementadas
