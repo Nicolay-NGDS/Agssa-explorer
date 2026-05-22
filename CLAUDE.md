@@ -264,7 +264,20 @@ Tooltips deben ser `position: absolute` para no afectar el tamano del padre.
 
 ### DataFlowView - Detalle
 Vista interactiva que muestra el ciclo de vida de datos para **Poliza Individual**:
-- 8 etapas: Formulario → Pago → Sync → Analisis → Contrato → Poliza → Siniestro → Renovacion
+- **12 etapas detalladas** que coinciden con el stepper real de la pagina:
+  - 0: Llenado formulario (memoria) - con **simulador interactivo**
+  - 1: Guardar Info General (INSERT BD RADICACIONES)
+  - 2: Confirmacion (solo lectura)
+  - 3: Datos Facturacion
+  - 4: Pago Wompi
+  - 5: Validacion Identidad
+  - 6: Sync a AGSSA
+  - 7: Analisis de Riesgo
+  - 8: Generacion Contrato
+  - 9: Activacion Poliza
+  - 10: Siniestro (si aplica)
+  - 11: Renovacion (si aplica)
+- **Simulador interactivo** en etapa 0: formulario mini + panel "Memoria del Navegador" que muestra estado React en tiempo real
 - Muestra que tablas se crean/modifican en cada etapa
 - Indica que campos se llenan en cada paso (nuevo/ya llenado/pendiente)
 - Datos completos de BD RADICACIONES (T*) y BD AGSSA (C*)
@@ -278,7 +291,16 @@ Vista interactiva que muestra el ciclo de vida de datos para **Poliza Individual
 
 ## Historial de Desarrollo
 
-### 2026-05-21
+### 2026-05-21 (sesion 2)
+- Reestructurado DataFlowView de 8 a 12 etapas para coincidir con stepper real
+- Agregado simulador interactivo del formulario en etapa 0:
+  - Panel izquierdo: formulario con campos clave (tipo persona, documento, nombres, email, etc.)
+  - Panel derecho: "Memoria del Navegador" mostrando estado React en tiempo real
+  - Indicadores visuales de que datos NO estan en BD
+  - Boton "Continuar" que lleva a etapa de guardado
+- Actualizados IDs de etapas en todos los tableSchemas (BD RADICACIONES y BD AGSSA)
+
+### 2026-05-21 (sesion 1)
 - Agregadas tablas de catalogos a BD RADICACIONES (12 tablas)
 - ERDiagramView ahora muestra todos los campos (sin limite de 6)
 - Colores diferenciados para grupo "Catalogos" (gris/slate)
