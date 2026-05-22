@@ -28,7 +28,9 @@
       "Bash(git push:*)",
       "Bash(git config:*)",
       "Bash(cat:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "WebFetch(domain:radicacion.arriendeseguro.com)",
+      "Bash(git restore:*)"
     ]
   }
 }
